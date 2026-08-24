@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  PROFESSIONAL
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum ServiceCategory {
+  HAIRCUT
+  HAIR_COLORING
+  BEARD
+  STYLING
+  MAKEUP
+  NAILS
+  SKIN_CARE
+  HAIR_TREATMENT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  professional       Professional?
+  bookingsAsCustomer Booking[]     @relation("CustomerBookings")
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  address     String?
+  city        String?
+  phone       String?
+  logoUrl     String?
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  professionals Professional[]
+  services      Service[]
+  bookings      Booking[]
+}
+
+model Professional {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  isOwner    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  workingHours WorkingHour[]
+  bookings     Booking[]
+}
+
+model Service {
+  id          String          @id @default(cuid())
+  businessId  String
+  business    Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  category    ServiceCategory
+  priceIrr    Int
+  durationMin Int
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  bookings Booking[]
+}
+
+model WorkingHour {
+  id             String       @id @default(cuid())
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  weekday        Int
+  startMin       Int
+  endMin         Int
+
+  @@unique([professionalId, weekday])
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  customerId     String
+  customer       User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  professionalId String
+  professional   Professional  @relation(fields: [professionalId], references: [id])
+  businessId     String
+  business       Business      @relation(fields: [businessId], references: [id])
+  serviceId      String
+  service        Service       @relation(fields: [serviceId], references: [id])
+  startsAt       DateTime
+  endsAt         DateTime
+  status         BookingStatus @default(CONFIRMED)
+  priceIrr       Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([professionalId, startsAt])
+  @@index([customerId, startsAt])
+}
