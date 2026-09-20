@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Vazirmatn } from "next/font/google";
-import { Header } from "@/components/Header";
 import "./globals.css";
 
 const vazir = Vazirmatn({
@@ -10,7 +9,7 @@ const vazir = Vazirmatn({
 });
 
 export const metadata: Metadata = {
-  title: "نوبت‌زیبا | رزرو سالن زیبایی",
+  title: "نوبتی | رزرو سالن زیبایی",
   description: "رزرو آنلاین آرایشگاه و سالن زیبایی",
 };
 
@@ -19,10 +18,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${vazir.variable} min-h-screen antialiased`}>
-        <Header />
-        <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
-      </body>
+      <body className={`${vazir.variable} antialiased`}>{children}</body>
     </html>
   );
 }

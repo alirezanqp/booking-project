@@ -85,7 +85,7 @@ export class BusinessesService {
     const pro = await this.prisma.professional.findUnique({
       where: { userId },
     });
-    if (!pro) throw new ForbiddenException("حساب حرفه‌ای نیست");
+    if (!pro) throw new ForbiddenException("حساب کسب‌وکار نیست");
     return pro;
   }
 }

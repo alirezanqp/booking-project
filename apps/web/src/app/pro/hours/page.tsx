@@ -1,9 +1,15 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ProShell } from "@/components/ProShell";
 import { api, type Me, type WorkingHour } from "@/lib/api";
-import { WEEKDAY_FA, minutesToHm } from "@/lib/dates";
+import {
+  WEEKDAY_FA,
+  WEEKDAY_ORDER_IR,
+  minutesToHm,
+} from "@/lib/dates";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 type Draft = { weekday: number; start: string; end: string; open: boolean };
 
@@ -19,23 +25,12 @@ function timeToMin(t: string) {
 }
 
 export default function ProHoursPage() {
-  return (
-    <ProShell>
-      <HoursEditor />
-    </ProShell>
-  );
+  return <HoursEditor />;
 }
 
 function HoursEditor() {
   const [professionalId, setProfessionalId] = useState("");
-  const [days, setDays] = useState<Draft[]>(
-    WEEKDAY_FA.map((_, weekday) => ({
-      weekday,
-      start: "09:00",
-      end: weekday === 4 ? "14:00" : "18:00",
-      open: weekday !== 5,
-    })),
-  );
+  const [days, setDays] = useState<Draft[] | null>(null);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
@@ -45,12 +40,19 @@ function HoursEditor() {
       const hours = await api<WorkingHour[]>(
         `/professionals/${pid}/working-hours`,
       );
-      setDays((prev) =>
-        prev.map((d) => {
-          const h = hours.find((x) => x.weekday === d.weekday);
-          if (!h) return { ...d, open: false };
+      setDays(
+        WEEKDAY_ORDER_IR.map((weekday) => {
+          const h = hours.find((x) => x.weekday === weekday);
+          if (!h) {
+            return {
+              weekday,
+              start: "09:00",
+              end: weekday === 4 ? "14:00" : "18:00",
+              open: false,
+            };
+          }
           return {
-            weekday: d.weekday,
+            weekday,
             open: true,
             start: minToTime(h.startMin),
             end: minToTime(h.endMin),
@@ -62,6 +64,7 @@ function HoursEditor() {
 
   async function save(e: FormEvent) {
     e.preventDefault();
+    if (!days) return;
     const hours = days
       .filter((d) => d.open)
       .map((d) => ({
@@ -76,61 +79,69 @@ function HoursEditor() {
     setMsg("ساعات کاری ذخیره شد");
   }
 
+  if (!days) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={save} className="space-y-4">
       <h1 className="text-xl font-bold">ساعات کاری</h1>
       {days.map((d, i) => (
-        <div
-          key={d.weekday}
-          className="flex flex-wrap items-center gap-3 rounded-3xl border border-border bg-card p-4"
-        >
-          <label className="flex items-center gap-2 font-medium">
-            <input
-              type="checkbox"
-              checked={d.open}
-              onChange={(e) => {
-                const next = [...days];
-                next[i] = { ...d, open: e.target.checked };
-                setDays(next);
-              }}
-            />
-            {WEEKDAY_FA[d.weekday]}
-          </label>
-          {d.open && (
-            <div className="flex items-center gap-2" dir="ltr">
+        <Card key={d.weekday} className="!p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex min-h-11 items-center gap-2 font-medium">
               <input
-                type="time"
-                value={d.start}
+                type="checkbox"
+                checked={d.open}
                 onChange={(e) => {
                   const next = [...days];
-                  next[i] = { ...d, start: e.target.value };
+                  next[i] = { ...d, open: e.target.checked };
                   setDays(next);
                 }}
-                className="rounded-xl border border-border px-2 py-1"
               />
-              <span>–</span>
-              <input
-                type="time"
-                value={d.end}
-                onChange={(e) => {
-                  const next = [...days];
-                  next[i] = { ...d, end: e.target.value };
-                  setDays(next);
-                }}
-                className="rounded-xl border border-border px-2 py-1"
-              />
-              <span className="text-xs text-muted">
-                {minutesToHm(timeToMin(d.start))}
-              </span>
-            </div>
-          )}
-          {!d.open && <span className="text-sm text-muted">تعطیل</span>}
-        </div>
+              {WEEKDAY_FA[d.weekday]}
+            </label>
+            {d.open ? (
+              <div className="flex items-center gap-2" dir="ltr">
+                <input
+                  type="time"
+                  value={d.start}
+                  onChange={(e) => {
+                    const next = [...days];
+                    next[i] = { ...d, start: e.target.value };
+                    setDays(next);
+                  }}
+                  className="min-h-11 rounded-xl border border-border px-2 py-1"
+                />
+                <span>–</span>
+                <input
+                  type="time"
+                  value={d.end}
+                  onChange={(e) => {
+                    const next = [...days];
+                    next[i] = { ...d, end: e.target.value };
+                    setDays(next);
+                  }}
+                  className="min-h-11 rounded-xl border border-border px-2 py-1"
+                />
+                <span className="text-xs text-muted">
+                  {minutesToHm(timeToMin(d.start))}
+                </span>
+              </div>
+            ) : (
+              <span className="text-sm text-muted">تعطیل</span>
+            )}
+          </div>
+        </Card>
       ))}
       {msg && <p className="text-sm text-brand">{msg}</p>}
-      <button className="rounded-full bg-brand px-6 py-3 text-white">
-        ذخیره ساعات
-      </button>
+      <Button type="submit">ذخیره ساعات</Button>
     </form>
   );
 }

@@ -3,15 +3,23 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { api, type Me } from "@/lib/api";
+import { notifyAuthChange } from "@/lib/auth";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
-export function LoginForm({ defaultRole }: { defaultRole?: "CUSTOMER" | "PROFESSIONAL" }) {
+export function LoginForm({
+  defaultRole,
+}: {
+  defaultRole?: "CUSTOMER" | "PROFESSIONAL";
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const role =
     (params.get("role") as "CUSTOMER" | "PROFESSIONAL" | null) ??
     defaultRole ??
     "CUSTOMER";
-  const next = params.get("next") ?? (role === "PROFESSIONAL" ? "/pro/business" : "/");
+  const next =
+    params.get("next") ?? (role === "PROFESSIONAL" ? "/pro/business" : "/");
 
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -46,7 +54,8 @@ export function LoginForm({ defaultRole }: { defaultRole?: "CUSTOMER" | "PROFESS
         method: "POST",
         body: JSON.stringify({ phone, code, name: name || undefined, role }),
       });
-      router.push(next);
+      notifyAuthChange();
+      router.replace(next);
       router.refresh();
     } catch (err) {
       setError((err as { message: string }).message);
@@ -56,13 +65,10 @@ export function LoginForm({ defaultRole }: { defaultRole?: "CUSTOMER" | "PROFESS
   }
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-sm">
-      <h1 className="mb-1 text-xl font-bold">
-        {role === "PROFESSIONAL" ? "ورود حرفه‌ای" : "ورود / ثبت‌نام"}
+    <Card className="mx-auto w-full max-w-md shadow-sm">
+      <h1 className="mb-6 text-xl font-bold">
+        {role === "PROFESSIONAL" ? "ورود کسب‌وکار" : "ورود / ثبت‌نام"}
       </h1>
-      <p className="mb-6 text-sm text-muted">
-        کد تایید در کنسول سرور API چاپ می‌شود (حالت توسعه).
-      </p>
       {error && (
         <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-danger">
           {error}
@@ -81,12 +87,9 @@ export function LoginForm({ defaultRole }: { defaultRole?: "CUSTOMER" | "PROFESS
               required
             />
           </label>
-          <button
-            disabled={loading}
-            className="w-full rounded-full bg-brand py-3 font-medium text-white hover:bg-brand-dark disabled:opacity-60"
-          >
+          <Button disabled={loading} className="w-full">
             دریافت کد
-          </button>
+          </Button>
         </form>
       ) : (
         <form onSubmit={verify} className="space-y-4">
@@ -109,21 +112,19 @@ export function LoginForm({ defaultRole }: { defaultRole?: "CUSTOMER" | "PROFESS
               required
             />
           </label>
-          <button
-            disabled={loading}
-            className="w-full rounded-full bg-brand py-3 font-medium text-white hover:bg-brand-dark disabled:opacity-60"
-          >
+          <Button disabled={loading} className="w-full">
             تأیید و ورود
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="w-full text-sm text-muted"
+            variant="ghost"
+            className="w-full"
             onClick={() => setStep("phone")}
           >
             تغییر شماره
-          </button>
+          </Button>
         </form>
       )}
-    </div>
+    </Card>
   );
 }

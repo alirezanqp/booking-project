@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CATEGORY_FA, SERVICE_CATEGORIES } from "@booking/shared";
 import { BusinessCard } from "@/components/BusinessCard";
+import { CategoryChips } from "@/components/CategoryChips";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { api, type Business } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -15,20 +16,21 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
-      <section className="rounded-[2rem] bg-gradient-to-l from-teal-50 to-amber-50 p-8 md:p-12">
-        <h1 className="mb-3 text-3xl font-bold md:text-4xl">
+      <section className="rounded-[2rem] bg-gradient-to-l from-teal-50 to-amber-50 p-6 md:p-12">
+        <h1 className="mb-3 text-3xl font-bold md:text-5xl">نوبتی</h1>
+        <p className="mb-2 text-lg font-medium text-fg md:text-xl">
           نوبت زیبایی، ساده و سریع
-        </h1>
+        </p>
         <p className="mb-6 max-w-xl text-muted">
           سالن و آرایشگر مورد علاقه‌تان را پیدا کنید و آنلاین وقت بگیرید.
         </p>
-        <form action="/search" className="flex max-w-xl gap-2">
+        <form action="/search" className="flex max-w-xl flex-col gap-2 sm:flex-row">
           <input
             name="q"
             placeholder="جستجوی سالن، خدمت یا محله..."
-            className="flex-1 rounded-full border border-border bg-white px-5 py-3 shadow-sm"
+            className="min-h-12 flex-1 rounded-full border border-border bg-white px-5 py-3 shadow-sm"
           />
-          <button className="rounded-full bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark">
+          <button className="min-h-12 rounded-full bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark">
             جستجو
           </button>
         </form>
@@ -36,17 +38,7 @@ export default async function HomePage() {
 
       <section>
         <h2 className="mb-4 text-xl font-bold">دسته‌بندی‌ها</h2>
-        <div className="flex flex-wrap gap-2">
-          {SERVICE_CATEGORIES.map((c) => (
-            <Link
-              key={c}
-              href={`/search?category=${c}`}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm hover:border-brand hover:text-brand"
-            >
-              {CATEGORY_FA[c]}
-            </Link>
-          ))}
-        </div>
+        <CategoryChips />
       </section>
 
       <section>
@@ -57,7 +49,10 @@ export default async function HomePage() {
           </Link>
         </div>
         {businesses.length === 0 ? (
-          <p className="text-muted">هنوز کسب‌وکاری ثبت نشده است.</p>
+          <EmptyState
+            title="هنوز کسب‌وکاری ثبت نشده"
+            description="به‌زودی سالن‌های بیشتری اضافه می‌شوند."
+          />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {businesses.map((b) => (

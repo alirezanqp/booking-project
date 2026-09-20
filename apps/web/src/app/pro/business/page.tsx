@@ -1,15 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ProShell } from "@/components/ProShell";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { api, type Business, type Me } from "@/lib/api";
 
 export default function ProBusinessPage() {
-  return (
-    <ProShell>
-      <BusinessForm />
-    </ProShell>
-  );
+  return <BusinessForm />;
 }
 
 function BusinessForm() {
@@ -26,7 +24,9 @@ function BusinessForm() {
   useEffect(() => {
     (async () => {
       const me = await api<Me>("/me");
-      const b = await api<Business>(`/businesses/${me.professional!.businessId}`);
+      const b = await api<Business>(
+        `/businesses/${me.professional!.businessId}`,
+      );
       setBusiness(b);
       setForm({
         name: b.name,
@@ -49,36 +49,37 @@ function BusinessForm() {
     setMsg("ذخیره شد");
   }
 
-  if (!business) return <p className="text-muted">...</p>;
+  if (!business) {
+    return <Skeleton className="h-64 w-full" />;
+  }
 
   return (
-    <form
-      onSubmit={save}
-      className="mx-auto max-w-lg space-y-4 rounded-3xl border border-border bg-card p-5"
-    >
-      <h1 className="text-xl font-bold">اطلاعات کسب‌وکار</h1>
-      {(
-        [
-          ["name", "نام"],
-          ["description", "توضیحات"],
-          ["address", "آدرس"],
-          ["city", "شهر"],
-          ["phone", "تلفن"],
-        ] as const
-      ).map(([key, label]) => (
-        <label key={key} className="block text-sm">
-          {label}
-          <input
-            className="mt-1 w-full rounded-2xl border border-border px-4 py-3"
-            value={form[key]}
-            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-          />
-        </label>
-      ))}
-      {msg && <p className="text-sm text-brand">{msg}</p>}
-      <button className="w-full rounded-full bg-brand py-3 text-white">
-        ذخیره
-      </button>
-    </form>
+    <Card className="mx-auto max-w-lg">
+      <form onSubmit={save} className="space-y-4">
+        <h1 className="text-xl font-bold">اطلاعات کسب‌وکار</h1>
+        {(
+          [
+            ["name", "نام"],
+            ["description", "توضیحات"],
+            ["address", "آدرس"],
+            ["city", "شهر"],
+            ["phone", "تلفن"],
+          ] as const
+        ).map(([key, label]) => (
+          <label key={key} className="block text-sm">
+            {label}
+            <input
+              className="mt-1 w-full rounded-2xl border border-border px-4 py-3"
+              value={form[key]}
+              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+            />
+          </label>
+        ))}
+        {msg && <p className="text-sm text-brand">{msg}</p>}
+        <Button type="submit" className="w-full">
+          ذخیره
+        </Button>
+      </form>
+    </Card>
   );
 }
