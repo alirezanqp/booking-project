@@ -41,7 +41,6 @@ export function toFaDigits(value: string | number): string {
   return String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)] ?? d);
 }
 
-/** Stored integer is IRR; label تومان to match local UX. Amounts match the SRS table numbers. */
 export function formatToman(irr: number): string {
   return `${toFaDigits(irr.toLocaleString("en-US"))} تومان`;
 }
