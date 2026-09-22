@@ -1,4 +1,4 @@
-# Salon booking (slice A)
+# Salon booking
 
 ## Stack
 
